@@ -1,3 +1,4 @@
+
 const API_URL = "https://script.google.com/macros/s/AKfycbzsMjeSBWAgc0C26hjEjgey7__xXLIRU1X6lZy5F8rKtAktupqGC700n--N1fwpMWe7sg/exec"; // Substitua pela sua
 
 document.getElementById('produto-form').addEventListener('submit', async (e) => {
