@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle de Produtos e Lotes</title>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Bootstrap Icons CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
+</head>
+<body>
+  <h1>Cadastro de Produtos</h1>
+
+  <!-- Ícone para adicionar produto -->
+  <button id="btnAdicionarProduto" class="btn btn-success">
+ <i class="fa fa-plus" style="font-size:36px"></i>
+</button>
+
+  <hr>
+
+  <div class="filtros">
+  <!-- Filtro por Código do Produto -->
+  <label for="filtroLote">Filtrar Produto:</label>
+  <input type="text" id="codigoProduto" placeholder="Pesquisar por Código do Produto" oninput="filtrarProdutos()">
+  
+  <!-- Filtro por Lote próximo a vencer -->
+  <label for="filtroLote">Filtrar Lote:</label>
+  <select id="filtroLote" onchange="filtrarProdutos()">
+    <option value="todos">Todos</option>
+    <option value="proximos">Lotes com validade entre 0 e 180 dias</option>
+  </select>
+</div>
+
+<!-- Lista de Produtos -->
+<div id="listaProdutos"></div>
+
+  <!-- Modal Produto + Lote -->
+<div class="modal fade" id="modalProduto" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cadastrar Produto</h5>
+      </div>
+
+      <div class="modal-body">
+        <!-- Cadastro de Produto -->
+        <div id="formProduto">
+          <input id="nomeProduto" class="form-control mb-2" placeholder="Nome do produto" required />
+          <input id="codigoProdutoNew" class="form-control mb-2" placeholder="Código do produto" required />
+          <button id="btnSalvarProduto" class="btn btn-primary w-100" onclick="cadastrarProdutoModal()" title="Salvar Produto">
+           <i class="fa fa-save"></i>
+          </button>
+        </div>
+
+        <!-- Cadastro de Lote (inicia oculto) -->
+        <div id="secaoLotes" style="display: none; ">
+          <hr>
+          <h6>Cadastrar Lote</h6>
+          <input id="lote" class="form-control mb-2" placeholder="Lote" />
+          <input id="quantidade" type="number" class="form-control mb-2" placeholder="Quantidade" />
+          <input id="validade" type="date" class="form-control mb-2" placeholder="Validade" />
+          <button class="btn btn-secondary w-100 mb-2" onclick="cadastrarLoteModal()" title="Adicionar Lote">
+            <i class="fa fa-save"></i> 
+          </button>
+
+          <!-- Lista de lotes cadastrados -->
+          <ol id="listaLotesTemp" class="list-group"></ol>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-danger" onclick="cancelarCadastro()"><i class="fa fa-close"></i></button>
+        <button class="btn btn-success" onclick="salvarProdutoELotes()"><i class="fa fa-check"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script src="script.js"></script>
+</body>
+</html>
