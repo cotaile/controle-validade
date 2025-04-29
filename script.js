@@ -72,8 +72,6 @@ function carregarProdutos() {
             const hoje = new Date();
             const diff = Math.ceil((validade - hoje) / (1000 * 60 * 60 * 24));
             
-            console.log("dasd",diff);
-
             lotes.push({
               ...lote,
               diasRestantes: diff
@@ -94,12 +92,13 @@ function carregarProdutos() {
           lotesFiltrados.forEach(lote => {
             let classe = "";
             if (lote.diasRestantes < 0) classe = "bg-red-200 font-medium";
+            else if (lote.diasRestantes === 0) classe = "bg-yellow-200 font-medium";
             else if (lote.diasRestantes <= 7) classe = "bg-orange-200 font-medium";
             else if (lote.diasRestantes <= 15) classe = "bg-blue-200 font-medium";
             else if (lote.diasRestantes <= 180) classe = "bg-green-200 font-medium";
   
             let mensagem = "";
-            if (lote.diasRestantes < 0) {
+            if (lote.diasRestantes < 0) {//Só conta o dia depois das 24 horas por isso o -1 e o +1
               mensagem = `Lote vencido há ${Math.abs(lote.diasRestantes)-1} dia(s)`;
             } else if (lote.diasRestantes === 0) {
               mensagem = "Produto vence hoje";
@@ -570,10 +569,14 @@ function salvarLotesEditados() {
 function abrirModalFaixa(faixa) {
   // Atualizar título
   let titulo = '';
-  if (faixa === 'vencidos') titulo = 'Lotes Vencidos';
-  else if (faixa === '0-7') titulo = 'Lotes Vencendo em 0-7 Dias';
-  else if (faixa === '8-15') titulo = 'Lotes Vencendo em 8-15 Dias';
-  else if (faixa === '16-180') titulo = 'Lotes Vencendo em 16-180 Dias';
+  const hoje = formatarData(new Date());
+
+  if (faixa === 'vencidos') titulo = 'Lotes Vencidos - ' + hoje;
+  else if (faixa === 'dias07') titulo = 'Lotes Vencendo entre 1 e 7 Dias - ' + hoje;
+  else if (faixa === 'dias815') titulo = 'Lotes Vencendo entre 8 e 15 Dias - ' + hoje;
+  else if (faixa === 'dias16180') titulo = 'Lotes Vencendo entre 16 e 180 Dias - ' + hoje;
+  else if (faixa === 'mais180') titulo = 'Lotes Vencendo em mais de 180 Dias - ' + hoje;
+  else if (faixa === 'vencidosHoje') titulo = 'Lotes Vencendo Hoje - ' + hoje;
   
   document.getElementById('modalTitulo').textContent = titulo;
 
@@ -588,6 +591,7 @@ function fecharModalFaixa() {
   document.getElementById('modalFaixa').classList.add('hidden');
 }
 
+//Não está sendo utilizada mas deve ser, quando a varíavel ficar global
 async function carregarProdutosLotes() {
   try {
     //Primeiro carrega os produtos
@@ -615,7 +619,7 @@ async function carregarProdutosLotes() {
 }
 
 async function atualizarDashboard() {
-  let produtosLotes = [];
+  produtosLotes = [];
   //Carrega todos Produtos e lotes
   try {
     //Primeiro carrega os produtos
@@ -659,6 +663,7 @@ async function atualizarDashboard() {
   let dias07 = 0;
   let dias815 = 0;
   let dias16180 = 0;
+  let diasMais180 = 0;
 
   produtosLotes.forEach(produto => {
     produto.lotes.forEach(lote => {
@@ -666,21 +671,31 @@ async function atualizarDashboard() {
       console.log("Hoje:",hoje);
       console.log("Validade:",validade);
       
-      const diffDias = Math.floor((validade - hoje) / (1000 * 60 * 60 * 24));
+      const diffDias = Math.floor((validade - hoje) / (1000 * 60 * 60 * 24))+1;
 
       console.log("Diferença:",diffDias);
 
       if (lote.validade === hojeFormatado) {
         vencendoHoje++;
       }
+
+      console.log(diffDias);
+      //if (lote.diasRestantes < 0) classe = "bg-red-200 font-medium";
+      //else if (lote.diasRestantes === 0) classe = "bg-yellow-200 font-medium";
+      //else if (lote.diasRestantes <= 7) classe = "bg-orange-200 font-medium";
+      //else if (lote.diasRestantes <= 15) classe = "bg-blue-200 font-medium";
+      //else if (lote.diasRestantes <= 180) classe = "bg-green-200 font-medium";
+
       if (diffDias < 0) {
         vencidos++;
-      } else if (diffDias >= 0 && diffDias <= 7) {
+      } else if (diffDias > 0 && diffDias <= 7) {
         dias07++;
       } else if (diffDias >= 8 && diffDias <= 15) {
         dias815++;
       } else if (diffDias >= 16 && diffDias <= 180) {
         dias16180++;
+      } else if (diffDias >180) {
+        diasMais180++;
       }
     });
   });
@@ -693,6 +708,7 @@ async function atualizarDashboard() {
   document.getElementById('dias07').textContent = dias07;
   document.getElementById('dias815').textContent = dias815;
   document.getElementById('dias16180').textContent = dias16180;
+  document.getElementById('mais180').textContent = diasMais180;
 }
 
 function carregarListaModal(faixa) {
@@ -705,20 +721,22 @@ function carregarListaModal(faixa) {
   produtosLotes.forEach(produto => {
     produto.lotes.forEach(lote => {
       const validade = new Date(lote.validade);
-      const diffDias = Math.floor((validade - hoje) / (1000 * 60 * 60 * 24));
+      const diffDias = Math.floor((validade - hoje) / (1000 * 60 * 60 * 24))+1;
 
       if (
         (faixa === 'vencidos' && diffDias < 0) ||
-        (faixa === '0-7' && diffDias >= 0 && diffDias <= 7) ||
-        (faixa === '8-15' && diffDias >= 8 && diffDias <= 15) ||
-        (faixa === '16-180' && diffDias >= 16 && diffDias <= 180)
+        (faixa === 'dias07' && diffDias > 0 && diffDias <= 7) ||
+        (faixa === 'dias815' && diffDias >= 8 && diffDias <= 15) ||
+        (faixa === 'dias16180' && diffDias >= 16 && diffDias <= 180)||
+        (faixa === 'mais180' && diffDias >180)||
+        (faixa === 'vencidosHoje' && diffDias === 0)
       ) {
         lotesFiltrados.push({
           produto: produto.nome,
           codigo: produto.codigo,
           lote: lote.lote,
           quantidade: lote.quantidade,
-          vencimento: lote.validade
+          vencimento: formatarData(lote.validade)
         });
       }
     });
@@ -742,13 +760,37 @@ function carregarListaModal(faixa) {
 
   // Mostrar modal faixa
   document.getElementById('modalFaixa').classList.remove('hidden');
-  console.log(produtosLotes);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   atualizarDashboard();
 });
 
+async function gerarPDFModal() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const modal = document.getElementById("modalFaixa");
+  const nomeSalvo = document.getElementById('modalTitulo');
+
+  // Oculta botões antes de capturar a tela
+  const botoes = modal.querySelectorAll("button");
+  botoes.forEach(btn => btn.style.display = "none");
+
+  // Aguarda renderização e captura
+  await html2canvas(modal, { scale: 2 }).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+    const imgProps = doc.getImageProperties(imgData);
+    const pdfWidth = doc.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    doc.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    doc.save((nomeSalvo.textContent).replaceAll(" ", "_") + ".pdf");
+  });
+
+  // Mostra os botões novamente
+  botoes.forEach(btn => btn.style.display = "");
+}
 
 //5 - Fim Dashboard
 
@@ -831,14 +873,14 @@ function mostrarSessaoBusca() {
     // Mostra a seção e troca o ícone para "X"
     sessao.classList.remove('hidden');
     iconeBusca.className = 'fas fa-times'; // Ícone de fechar (x)
-    textoBusca.textContent = 'Fechar Buscar';
+    textoBusca.textContent = '';
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
     // Esconde a seção e volta o ícone para "lupa"
     sessao.classList.add('hidden');
     iconeBusca.className = 'fas fa-search'; // Ícone de lupa
-    textoBusca.textContent = 'Buscar Produto / Lote(s)';
+    textoBusca.textContent = '';
   }
 }
 
@@ -848,3 +890,39 @@ function criarDataLocal(dataTexto) {
   return new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
 }
 
+
+//Ler Codigo de Barras no celular
+let scanner = null;
+
+function abrirScanner() {
+  document.getElementById("leitorCodigoBarras").classList.remove("hidden");
+
+  if (!scanner) {
+    scanner = new Html5Qrcode("reader");
+  }
+
+  const config = { fps: 10, qrbox: 250 };
+
+  scanner.start(
+    { facingMode: "environment" },
+    config,
+    (decodedText, decodedResult) => {
+      document.getElementById("codigoProduto").value = decodedText;
+      filtrarProdutos();
+      fecharScanner();
+    },
+    (errorMessage) => {
+      // console.log("Erro de leitura: ", errorMessage);
+    }
+  ).catch(err => {
+    alert("Erro ao iniciar o scanner: " + err);
+  });
+}
+
+function fecharScanner() {
+  if (scanner) {
+    scanner.stop().then(() => {
+      document.getElementById("leitorCodigoBarras").classList.add("hidden");
+    });
+  }
+}
